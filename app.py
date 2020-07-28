@@ -1,18 +1,20 @@
-from flask import Flask, flash, session, render_template, redirect, url_for, request
+from flask import Flask, flash, session, render_template, redirect, url_for
 from functools import wraps
-# import db schema
-from models import *
 from flask_sqlalchemy import SQLAlchemy
-from flask_bcrypt import Bcrypt
 
 app = Flask(__name__)
-bcrypt = Bcrypt(app)
 
 # config
 app.config.from_object('config.DevelopmentConfig')
 
 # create the sqlalchemy object
 db = SQLAlchemy(app)
+
+# import db schema
+from models import *
+from project.users.views import users_blueprint
+
+app.register_blueprint(users_blueprint)
 
 
 # login required decorator
@@ -23,7 +25,7 @@ def login_required(f):
             return f(*args, **kwargs)
         else:
             flash('You need to login first.')
-            return redirect(url_for('login'))
+            return redirect(url_for('users.login'))
     return wrap
 
 
@@ -39,29 +41,6 @@ def home():
 @app.route('/welcome')
 def welcome():
     return render_template('welcome.html')  # render a template
-
-
-# route for handling the login page logic
-@app.route('/login', methods=['GET', 'POST'])
-def login():
-    error = None
-    if request.method == 'POST':
-        if (request.form['username'] != 'admin') \
-                or request.form['password'] != 'admin':
-            error = 'Invalid Credentials. Please try again.'
-        else:
-            session['logged_in'] = True
-            flash('You are logged in.')
-            return redirect(url_for('home'))
-    return render_template('login.html', error=error)
-
-
-@app.route('/logout')
-@login_required
-def logout():
-    session.pop('logged_in', None)
-    flash('You are logged out.')
-    return redirect(url_for('welcome'))
 
 
 # start the server with the 'run()' method
