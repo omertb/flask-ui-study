@@ -1,17 +1,32 @@
 from project import db
 from project import bcrypt
 
-from sqlalchemy import ForeignKey
-from sqlalchemy.orm import relationship
 
+class Device(db.Model):
+
+    __tablename__ = "devices"
+
+    id = db.Column(db.Integer, primary_key=True)
+    device_name = db.Column(db.String(50), nullable=False, unique=True)
+    device_serial = db.Column(db.String(20), nullable=False)
+    net_id = db.Column(db.Integer, db.ForeignKey('networks.id'))
+
+    def __init__(self, device_name, device_serial):
+        self.device_name = device_name
+        self.device_serial = device_serial
+
+    def __repr__(self):
+        return '<device_name {}'.format(self.device_name)
 
 class Network(db.Model):
 
     __tablename__ = "networks"
 
     id = db.Column(db.Integer, primary_key=True)
-    net_name = db.Column(db.String, nullable=False, unique=True)
-    owner_id = db.Column(db.Integer, ForeignKey('users.id'))
+    net_name = db.Column(db.String(50), nullable=False, unique=True)
+    net_type = db.Column(db.String(30), nullable=False)
+    owner_id = db.Column(db.Integer, db.ForeignKey('users.id'))
+    devices = db.relationship("Device", backref="network", lazy=True)
 
     def __init__(self, net_name):
         self.net_name = net_name
@@ -25,15 +40,22 @@ class User(db.Model):
     __tablename__ = "users"
 
     id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String, nullable=False, unique=True)
-    email = db.Column(db.String, nullable=False)
-    password = db.Column(db.String, nullable=False)
-    networks = relationship("Network")
+    username = db.Column(db.String(50), nullable=False, unique=True)
+    name = db.Column(db.String(50), nullable=False)
+    surname = db.Column(db.String(50), nullable=False)
+    email = db.Column(db.String(50), nullable=False, unique=True)
+    password = db.Column(db.String(128), nullable=False)
+    networks = db.relationship("Network", backref="user", lazy=True)
 
-    def __init__(self, username, password, email):
+    def __init__(self, username, password, email, name, surname):
         self.username = username
-        self.email = email
         self.password = bcrypt.generate_password_hash(password)
+        self.email = email
+        self.name = name
+        self.surname = surname
 
     def __repr__(self):
         return '<name {}'.format(self.username)
+
+
+
