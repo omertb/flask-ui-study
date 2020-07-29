@@ -1,4 +1,6 @@
-from models import *
+from project import db
+# from project.models import *
+
 
 # create the database and the db table
 db.create_all()
