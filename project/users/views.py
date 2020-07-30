@@ -1,25 +1,13 @@
-from flask import flash, redirect, render_template, url_for, session, request, Blueprint
-from functools import wraps
+from flask import flash, redirect, render_template, url_for, request, Blueprint
 from project.users.forms import LoginForm
 from project.models import User, bcrypt
+from flask_login import login_user, login_required, logout_user
 
 
 users_blueprint = Blueprint('users', __name__, template_folder='templates')
 
 
-# login required decorator
-def login_required(f):
-    @wraps(f)
-    def wrap(*args, **kwargs):
-        if 'logged_in' in session:
-            return f(*args, **kwargs)
-        else:
-            flash('You need to login first.')
-            return redirect(url_for('users.login'))
-    return wrap
-
-
-# route for handling the login page logic
+# login page
 @users_blueprint.route('/login', methods=['GET', 'POST'])
 def login():
     form = LoginForm(request.form)
@@ -28,7 +16,8 @@ def login():
         if form.validate_on_submit():
             user = User.query.filter_by(username=request.form['username']).first()
             if user is not None and bcrypt.check_password_hash(user.password, request.form['password']):
-                session['logged_in'] = True
+                # session['logged_in'] = True
+                login_user(user)  # (flask_login) session created
                 flash('You are logged in.')
                 return redirect(url_for('home.home'))
             else:
@@ -37,8 +26,8 @@ def login():
 
 
 @users_blueprint.route('/logout')
-@login_required
+@login_required  # flask_login
 def logout():
-    session.pop('logged_in', None)
+    logout_user()  # (flask_login) clear session
     flash('You are logged out.')
     return redirect(url_for('home.welcome'))
