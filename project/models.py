@@ -49,7 +49,7 @@ class User(db.Model):
 
     def __init__(self, username, password, email, name, surname):
         self.username = username
-        self.password = bcrypt.generate_password_hash(password)
+        self.password = bcrypt.generate_password_hash(password).decode('utf-8')
         self.email = email
         self.name = name
         self.surname = surname
