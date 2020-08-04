@@ -3,6 +3,8 @@ from project.users.forms import LoginForm, RegisterForm
 from project.models import User, bcrypt
 from project import db
 from flask_login import login_user, login_required, logout_user
+from project.token import generate_verification_token, verify_token
+from project.email import send_email
 
 
 users_blueprint = Blueprint('users', __name__, template_folder='templates')
@@ -43,10 +45,40 @@ def register():
             surname=form.surname.data,
             email=form.email.data,
             username=form.email.data.split("@")[0],
-            password=form.password.data
+            password=form.password.data,
+            verified=False
         )
         db.session.add(user)
         db.session.commit()
+
+        token = generate_verification_token(user.email)
+
+        verification_url = url_for('users.verify_email', token=token, _external=True)
+        html = render_template('activate.html', verification_url=verification_url)
+        subject = "Please verify your email"
+        send_email(user.email, subject, html)
+
         login_user(user)
+        flash("Verification email has been sent via email", "success")
+
         return redirect(url_for('home.home'))
+
     return render_template('register.html', form=form)
+
+
+@users_blueprint.route('/verify/<token>')
+@login_required
+def verify_email(token):
+    try:
+        email = verify_token(token)
+    except:
+        flash('Verification link is invalid or has expired.', 'danger')
+    user = User.query.filter_by(email=email).first_or_404()
+    if user.verified:
+        flash('Account already verified. Please login.', 'success')
+    else:
+        user.verified = True
+        db.session.add(user)
+        db.session.commit()
+        flash('You have verified your account. Thanks!', 'success')
+    return redirect(url_for('home.home'))
