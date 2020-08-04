@@ -1,5 +1,5 @@
 from project import db
-from project.models import User
+from project.models import Network
 from flask import render_template, Blueprint
 from flask_login import login_required
 
@@ -11,7 +11,7 @@ home_blueprint = Blueprint('home', __name__, template_folder='templates')
 @login_required
 def home():
     # return "Hello, World!"  # return a string
-    posts = db.session.query(User).all()
+    posts = db.session.query(Network).all()
     return render_template('home.html', posts=posts)  # render a template
 
 

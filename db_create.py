@@ -8,8 +8,9 @@ db.create_all()
 # insert data
 db.session.add(User("admin", "admin", "admin@example.com"))
 db.session.add(User("user1", "user1", "user1@example.com"))
-# db.session.add(Network("Test-Wireless"))
-# db.session.add(Network("Test-Switch"))
+# User.query.filter_by(username='admin').delete()
+# db.session.add(Network("Test-Wireless", "wireless"))
+# db.session.add(Network("Test-Switch", "switch"))
 
 
 # commit the changes

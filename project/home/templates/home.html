@@ -1,15 +1,14 @@
 {% extends "base.html" %}
 {% block content %}
 
-      <h1>Welcome to Flask!</h1>
+      <h1>Network - Device Registration</h1>
       <br>
       <p>Click <a href="/logout">here</a> to logout.</p>
 
     <h3>Posts:</h3>
 {% for post in posts %}
-  <strong>User:</strong> {{ post.username }} <br>
-  <strong>Email:</strong> {{ post.email }} <br>
-  <strong>Password:</strong> {{ post.password }} <br>
+  <strong>Network: </strong> {{ post.net_name }} <br>
+  <strong>Type: </strong> {{ post.net_type }} <br>
 <br>
 {% endfor %}
 

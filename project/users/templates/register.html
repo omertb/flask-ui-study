@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+
+{% block custom_head %}
+<title>Register</title>
+    <!-- Custom styles for this template -->
+    <link href="./static/login.css" rel="stylesheet">
+
+{% endblock %}
+
+{% block content %}
+
+<h1>Please Register</h1>
+<br>
+<form class="form-signin" role="form" method="post" action="">
+  {{ form.csrf_token }}
+  <p>
+    {{ form.name(autocomplete="off", class_="form-control", placeholder="Name") }}
+    <span class="error">
+      {% if form.name.errors %}
+        {% for error in form.name.errors %}
+          {{ error }}
+        {% endfor %}
+      {% endif %}
+    </span>
+  </p>
+  <p>
+    {{ form.surname(autocomplete="off", class_="form-control", placeholder="Surname") }}
+    <span class="error">
+      {% if form.surname.errors %}
+        {% for error in form.surname.errors %}
+          {{ error }}
+        {% endfor %}
+      {% endif %}
+    </span>
+  </p>
+  <p>
+  {{ form.email(autocomplete="off", class_="form-control", placeholder="email") }}
+    <span class="error">
+      {% if form.email.errors %}
+        {% for error in form.email.errors %}
+          {{ error }}
+        {% endfor %}
+      {% endif %}
+    </span>
+  </p>
+  <p>
+  {{ form.password(autocomplete="off", class_="form-control", placeholder="password") }}
+    <span class="error">
+      {% if form.password.errors %}
+        {% for error in form.password.errors %}
+          {{ error }}
+        {% endfor %}
+      {% endif %}
+    </span>
+  </p>
+  <p>
+  {{ form.confirm(autocomplete="off", class_="form-control", placeholder="confirm") }}
+    <span class="error">
+      {% if form.confirm.errors %}
+        {% for error in form.confirm.errors %}
+          {{ error }}
+        {% endfor %}
+      {% endif %}
+    </span>
+  </p>
+  <button class="btn btn-lg btn-success btn-block" type="submit">Register!</button>
+</form>
+
+{% endblock %}
