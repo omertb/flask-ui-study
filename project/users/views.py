@@ -2,9 +2,10 @@ from flask import flash, redirect, render_template, url_for, request, Blueprint
 from project.users.forms import LoginForm, RegisterForm
 from project.models import User, bcrypt
 from project import db
-from flask_login import login_user, login_required, logout_user
+from flask_login import login_user, login_required, logout_user, current_user
 from project.token import generate_verification_token, verify_token
 from project.email import send_email
+from sqlalchemy import exc  # exceptions
 
 
 users_blueprint = Blueprint('users', __name__, template_folder='templates')
@@ -49,7 +50,11 @@ def register():
             verified=False
         )
         db.session.add(user)
-        db.session.commit()
+        try:
+            db.session.commit()
+        except exc.IntegrityError:
+            flash("User already exists!", "error")
+            return render_template('register.html', form=form)
 
         token = generate_verification_token(user.email)
 
@@ -59,9 +64,9 @@ def register():
         send_email(user.email, subject, html)
 
         login_user(user)
-        flash("Verification email has been sent via email", "success")
+        flash("Verification link has been sent via email", "success")
 
-        return redirect(url_for('home.home'))
+        return redirect(url_for('users.unverified'))
 
     return render_template('register.html', form=form)
 
@@ -71,9 +76,11 @@ def register():
 def verify_email(token):
     try:
         email = verify_token(token)
+        user = User.query.filter_by(email=email).first_or_404()
     except:
         flash('Verification link is invalid or has expired.', 'danger')
-    user = User.query.filter_by(email=email).first_or_404()
+        return redirect(url_for('home.home'))
+
     if user.verified:
         flash('Account already verified. Please login.', 'success')
     else:
@@ -82,3 +89,24 @@ def verify_email(token):
         db.session.commit()
         flash('You have verified your account. Thanks!', 'success')
     return redirect(url_for('home.home'))
+
+
+@users_blueprint.route('/unverified')
+@login_required
+def unverified():
+    if current_user.verified:
+        return redirect(url_for('home.home'))
+    flash('Please verify your account!', 'warning')
+    return render_template('unverified.html')
+
+
+@users_blueprint.route('/resend')
+@login_required
+def resend_verification():
+    token = generate_verification_token(current_user.email)
+    verification_url = url_for('users.verify_email', token=token, _external=True)
+    html = render_template('activate.html', verification_url=verification_url)
+    subject = "Please verify your email"
+    send_email(current_user.email, subject, html)
+    flash('A new verification email has been sent.', 'success')
+    return redirect(url_for('users.unverified'))
